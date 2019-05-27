@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="configuration-server" />
+        <module name="eureka-client-lab-2" />
+        <module name="eureka-lab-2" />
+        <module name="lab-2" />
+        <module name="rabbitmq-consumer" />
+        <module name="zoomodels" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="8" />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="configuration-server" options="" />
+      <module name="eureka-client-lab-2" options="" />
+      <module name="eureka-lab-2" options="" />
+      <module name="lab-2" options="" />
+      <module name="rabbitmq-consumer" options="" />
+      <module name="zoomodels" options="" />
+    </option>
+  </component>
+</project>
