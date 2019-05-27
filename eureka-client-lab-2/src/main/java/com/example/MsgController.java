@@ -220,13 +220,44 @@ public class MsgController {
 
     @RequestMapping(value = "/animals/{id}", method = RequestMethod.GET)
     public String getAnimal(@PathVariable Long id) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        HttpEntity httpEntity = new HttpEntity(headers);
+
         String url = getInstancesRun();
         log.info("Getting all details for Animal " + id + " from " + url);
-        String response = this.restTemplate.exchange(String.format("%s/animals/%s", url, id),
-                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {
-                }, id).getBody();
+        //String response = this.restTemplate.exchange(String.format("%s/animals/%s", url, id),
+                //HttpMethod.GET, null, new ParameterizedTypeReference<String>() {
+                //}, id).getBody();
+
+        ResponseEntity<Animal> response = restTemplate.exchange(String.format("%s/animals/%s", url, Long.toString(id)),
+                HttpMethod.GET, httpEntity, Animal.class, id);
 
         log.info("Info about Animal: " + response);
+
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            AnimalMessage msg = new AnimalMessage("Animal was successfully got - " + id.toString(), OperationType.GET, "200", "");
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
+            AnimalMessage msg = new AnimalMessage("Animal was unsuccessfully got - " + id.toString(), OperationType.GET, "404", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+            AnimalMessage msg = new AnimalMessage("Internal server error when getting animal - " + id.toString(), OperationType.GET, "500", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+
+        else if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            AnimalMessage msg = new AnimalMessage("Bad request when getting animal - " + id.toString(), OperationType.GET, "400", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+
+        else {
+            AnimalMessage msg = new AnimalMessage("Something gone wrong when getting animal - " + id.toString(), OperationType.GET, "", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
 
         return "Id -  " + id + " \n Animal Details " + response;
     }
@@ -318,4 +349,16 @@ public class MsgController {
 
         return root.toString();
     }
+
+    @RequestMapping(value = "/messages", method = RequestMethod.GET)
+    public String getMessages() {
+        String url = getInstancesRun();
+        log.info("Getting all messages" + " from " + url);
+        String response = this.restTemplate.exchange(String.format("%s/messages", url),
+                HttpMethod.GET, null, new ParameterizedTypeReference<String>() {
+                }).getBody();
+
+        return "All messages: \n" + response;
+    }
+
 }

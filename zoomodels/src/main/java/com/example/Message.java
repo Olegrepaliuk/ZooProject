@@ -51,4 +51,9 @@ public class Message {
 
         return jsonString;
     }
+
+    public Long getMsg_id()
+    {
+        return msg_id;
+    }
 }
