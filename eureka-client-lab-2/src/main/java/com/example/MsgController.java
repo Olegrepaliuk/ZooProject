@@ -282,9 +282,31 @@ public class MsgController {
 
         HttpEntity<String> entity = new HttpEntity<>(object, headers);
 
-        String response = this.restTemplate.exchange(String.format("%s/animals", url),
+        //String response = this.restTemplate.exchange(String.format("%s/animals", url),
+                //HttpMethod.POST, entity, new ParameterizedTypeReference<String>() {
+                //}).getBody();
+        ResponseEntity<String> response = this.restTemplate.exchange(String.format("%s/animals", url),
                 HttpMethod.POST, entity, new ParameterizedTypeReference<String>() {
-                }).getBody();
+                });
+
+
+        if (response.getStatusCode() == HttpStatus.CREATED) {
+            AnimalMessage msg = new AnimalMessage("Animal was successfully created - ", OperationType.POST, "200", "");
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+            AnimalMessage msg = new AnimalMessage("Internal server error when creating Animal - ", OperationType.POST, "500", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            AnimalMessage msg = new AnimalMessage("Bad request error when creating Animal - ", OperationType.POST, "400", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+
+        else {
+            AnimalMessage msg = new AnimalMessage("Something gone wrong when creating Animal - ", OperationType.POST, "", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
 
         return "All Animals: \n" + response;
     }
@@ -309,9 +331,37 @@ public class MsgController {
     public String deleteAnimal(@PathVariable Long id) {
         String url = getInstancesRun();
         log.info("Deleting Animal from " + url);
-        String response = this.restTemplate.exchange(String.format("%s/animals/%s", url, id),
+        //String response = this.restTemplate.exchange(String.format("%s/animals/%s", url, id),
+                //HttpMethod.DELETE, null, new ParameterizedTypeReference<String>() {
+                //}, id).getBody();
+
+
+        ResponseEntity<String> response = this.restTemplate.exchange(String.format("%s/animals/%s", url, id),
                 HttpMethod.DELETE, null, new ParameterizedTypeReference<String>() {
-                }, id).getBody();
+                }, id);
+
+        if (response.getStatusCode() == HttpStatus.OK || response.getStatusCode() == HttpStatus.ACCEPTED) {
+            AnimalMessage msg = new AnimalMessage("Animal was successfully deleted - " + id.toString(), OperationType.DELETE, "200", "");
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.NOT_FOUND) {
+            AnimalMessage msg = new AnimalMessage("Animal was not found when delete - " + id.toString(), OperationType.DELETE, "404", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+            AnimalMessage msg = new AnimalMessage("Internal server error when deleting Animal - " + id.toString(), OperationType.DELETE, "500", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+        else if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            AnimalMessage msg = new AnimalMessage("Bad request error when deleting Animal - " + id.toString(), OperationType.DELETE, "400", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+
+        else {
+            AnimalMessage msg = new AnimalMessage("Something gone wrong when deleting Animal - " + id.toString(), OperationType.DELETE, "", response.getBody().toString());
+            producer.sendAnimalMsg(msg);
+        }
+
 
         return "Deleted Animal: \n" + response;
     }
